@@ -1,0 +1,153 @@
+.takeover {
+  /* size of the big centred text — ~59px on an iPhone 15, up to 120px on a laptop */
+  --big: clamp(3rem, 15vw, 7.5rem);
+
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  background: var(--hot-pink);
+  color: #fff;
+}
+
+.takeover.is-dark {
+  background: #000;
+}
+
+/* "ew pink" — starts as the button's label, glides to the centre */
+.takeover__label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: var(--big);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.takeover.is-dark .takeover__label {
+  opacity: 0;
+}
+
+/* The black layer the eraser reveals */
+.takeover__erase {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transition: opacity 0.35s ease;
+}
+
+.takeover.is-collapsing .takeover__erase {
+  opacity: 0;
+}
+
+.takeover__better {
+  fill: #fff;
+  font-size: var(--big);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+/* The whiteboard eraser riding the tip of each stroke */
+.takeover__eraser {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 14px;
+  background:
+    linear-gradient(to right, #3f3f46 0 14%, transparent 14% 86%, #3f3f46 86%),
+    linear-gradient(#fafafa, #d4d4d8);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* "Better??? Goshh" gets thrown away: a little wind-up, then it flies off spinning */
+.takeover__better {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.takeover.is-greeting .takeover__better {
+  animation: throw-away 0.4s cubic-bezier(0.55, 0, 0.75, 0.2) forwards;
+}
+
+@keyframes throw-away {
+  0% {
+    transform: none;
+  }
+  22% {
+    transform: translate(-6%, 4%) rotate(-8deg) scale(0.94);
+  }
+  100% {
+    transform: translate(110vw, -75vh) rotate(480deg) scale(0.35);
+  }
+}
+
+/* The black version of the landing page — same layout, so the buttons line up */
+.takeover__greeting {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding:
+    max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  /* slides in from the left as one block, starting while "Better" is still flying off */
+  animation: slide-in-left 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100vw);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.takeover.is-collapsing .takeover__greeting {
+  animation: fade-out 0.25s ease forwards;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.btn--back {
+  background: var(--pink);
+  color: #1a1a1a;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Less motion: no throwing or sliding, just fades */
+@media (prefers-reduced-motion: reduce) {
+  .takeover.is-greeting .takeover__better {
+    animation: fade-out 0.4s ease forwards;
+  }
+
+  .takeover__greeting {
+    animation-name: fade-in-simple;
+  }
+
+  @keyframes fade-in-simple {
+    from {
+      opacity: 0;
+    }
+  }
+}

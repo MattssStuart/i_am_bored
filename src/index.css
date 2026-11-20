@@ -1,4 +1,6 @@
 :root {
+  --pink: #f48fb1;
+  --hot-pink: #ff1f8f;
   --bg: #f6f7f9;
   --surface: #ffffff;
   --text: #1a1a1a;
@@ -33,4 +35,5 @@
 
 body {
   margin: 0;
+  background: var(--pink);
 }
