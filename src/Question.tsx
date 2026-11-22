@@ -3,10 +3,10 @@ import { reducedMotion } from './motion'
 import { FADE_OUT_MS } from './theme'
 
 /*
- * "Did you enjoy that??" — "no" isn't really an option.
+ * "Was that cool?" — "no" isn't really an option.
  *
  * Each press of "no" changes its text and drops it further down the screen. The fourth press
- * sends it off the bottom completely, and "yes" grows into "yes, I absolutely enjoyed it".
+ * sends it off the bottom completely, and "yes" grows into "yes, it is".
  * Pressing "yes" fades the page away and hands over to the next one.
  */
 
@@ -145,7 +145,7 @@ function Question({ onYes }: Props) {
   return (
     <div className={`hi__question${leaving ? ' hi__question--leaving' : ''}`}>
       <h1 ref={titleRef} className="hi__title">
-        Did you enjoy that??
+        Was that cool?
       </h1>
       <div className="hi__actions">
         <button
@@ -155,7 +155,7 @@ function Question({ onYes }: Props) {
           onClick={sayYes}
           disabled={leaving}
         >
-          {noGone ? 'yes, I absolutely enjoyed it' : 'yes'}
+          {noGone ? 'yes, it is' : 'yes'}
         </button>
 
         {!noGone && (

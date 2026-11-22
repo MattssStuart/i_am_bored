@@ -16,7 +16,7 @@ type Props = {
 
 /**
  * What "hi" leads to: a line typed out in real time, which fades out as the
- * cat-and-crocodile scene begins, then "Did you enjoy that??" (and "no" isn't an option),
+ * cat-and-crocodile scene begins, then "Was that cool?" (and "no" isn't an option),
  * then a sign-off with a restart button.
  */
 function HiPage({ theme, onRestart }: Props) {
