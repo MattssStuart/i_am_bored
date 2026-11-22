@@ -167,14 +167,10 @@
   outline-offset: 3px;
 }
 
-.btn--hi {
+.btn--hi,
+.btn--ew {
   background: #fff;
   color: #c2185b;
-}
-
-.btn--ew {
-  background: var(--hot-pink);
-  color: #fff;
 }
 
 .btn--black {

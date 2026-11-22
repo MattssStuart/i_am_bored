@@ -83,25 +83,36 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
   const { d, stroke } = useMemo(() => eraserStrokes(window.innerWidth, window.innerHeight), [])
 
   // The page background, which iOS 26 uses for its bars whenever no fixed element is on screen
-  // (see `staged` below): hot pink for the wipe, black once the screen is black, else the page's pink.
+  // (see `staged` below): black once the screen is black, else the page's own pink.
   useEffect(() => {
-    const hotPink = getComputedStyle(document.documentElement).getPropertyValue('--hot-pink').trim()
-    if (phase === 'erasing') tintBrowserChrome(hotPink)
-    else if (phase === 'better' || phase === 'greeting') tintBrowserChrome('#000')
+    if (phase === 'better' || phase === 'greeting') tintBrowserChrome('#000')
     else tintBrowserChrome(null)
   }, [phase])
   useEffect(() => () => tintBrowserChrome(null), [])
 
-  // 1. Expand from the button to full screen
+  // 1. Expand from the button to full screen. It starts as the button's own colours (white, with
+  // pink text) and ends as the page's soft pink (or black, for the quick trips) with white text.
   useLayoutEffect(() => {
     const overlay = overlayRef.current
+    const fill = fillRef.current
     const label = labelRef.current
     const origin = originRef.current
-    if (!overlay || !label || !origin) return
+    if (!overlay || !fill || !label || !origin) return
 
+    const originStyle = getComputedStyle(origin)
     const timing = { duration: reducedMotion() ? 0 : EXPAND_MS, easing: EASE_IN_OUT, fill: 'both' as const }
     const grow = overlay.animate([{ clipPath: clipToElement(origin, overlay) }, { clipPath: FULL_SCREEN }], timing)
-    const glide = label.animate([{ transform: labelAtElement(origin, overlay, label) }, { transform: 'none' }], timing)
+    const recolour = fill.animate(
+      [{ backgroundColor: originStyle.backgroundColor }, { backgroundColor: getComputedStyle(fill).backgroundColor }],
+      timing,
+    )
+    const glide = label.animate(
+      [
+        { transform: labelAtElement(origin, overlay, label), color: originStyle.color },
+        { transform: 'none', color: getComputedStyle(label).color },
+      ],
+      timing,
+    )
 
     let timer = 0
     glide.finished
@@ -110,6 +121,7 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
         // re-colouring its bars while a fixed element still has an animation attached.
         overlay.style.clipPath = FULL_SCREEN
         grow.cancel()
+        recolour.cancel()
         glide.cancel()
         if (quick) setPhase('greeting')
         else timer = window.setTimeout(() => setPhase('erasing'), reducedMotion() ? 0 : PAUSE_BEFORE_ERASE_MS)
@@ -117,6 +129,7 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
       .catch(() => {}) // cancelled
     return () => {
       grow.cancel()
+      recolour.cancel()
       glide.cancel()
       clearTimeout(timer)
     }
@@ -175,15 +188,16 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
 
     const reduce = reducedMotion()
     const timing = { duration: reduce ? 0 : COLLAPSE_MS, easing: EASE_IN_OUT, fill: 'both' as const }
-    const hotPink = getComputedStyle(origin).backgroundColor
+    // Shrink into the button's own colours: its background, and its text colour for the label
+    const originStyle = getComputedStyle(origin)
 
     const shrink = overlay.animate([{ clipPath: FULL_SCREEN }, { clipPath: clipToElement(origin, overlay) }], timing)
-    const recolour = fill.animate([{ backgroundColor: '#000' }, { backgroundColor: hotPink }], timing)
+    const recolour = fill.animate([{ backgroundColor: '#000' }, { backgroundColor: originStyle.backgroundColor }], timing)
     const glide = label.animate(
       [
-        { transform: 'none', opacity: 0 },
+        { transform: 'none', opacity: 0, color: getComputedStyle(label).color },
         { opacity: 0, offset: 0.4 },
-        { transform: labelAtElement(origin, overlay, label), opacity: 1 },
+        { transform: labelAtElement(origin, overlay, label), opacity: 1, color: originStyle.color },
       ],
       timing,
     )
@@ -226,8 +240,8 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
   // iOS 26 Safari colours its top and bottom bars from a full-screen position:fixed element,
   // but only when one appears (it ignores that element changing colour later, and swapping it
   // for a copy in the same instant). "Back to black" works because its overlay is black when it
-  // appears. The first trip used to appear hot pink, so the bars stayed hot pink for the whole
-  // black screen. So the hot pink part (expand + wipe) runs on a plain, non-fixed layer, which
+  // appears. The first trip's overlay appears pink, so the bars would stay pink for the whole
+  // black screen. So the pink part (expand + wipe) runs on a plain, non-fixed layer, which
   // Safari ignores, and only once the screen is black does a fixed overlay appear — black, with
   // the same settling animation as "back to black". The key makes React build a fresh element.
   const staged = !quick && (phase === 'expanding' || phase === 'erasing')

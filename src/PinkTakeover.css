@@ -10,13 +10,13 @@
   /*
    * No background here on purpose. iOS 26 Safari tints its top and bottom bars from the
    * background of any position:fixed element, but only re-reads it lazily — so a fixed
-   * overlay that starts hot pink leaves the bars hot pink after it turns black. With this
+   * overlay that starts pink leaves the bars pink after it turns black. With this
    * element transparent, Safari uses the page background instead, which tintBrowserChrome()
    * (theme.ts) sets to match each phase. The colour is painted by .takeover__fill below.
    */
 }
 
-/* The hot pink stage of the first trip is a plain layer over the page, not a fixed one */
+/* The pink stage of the first trip is a plain layer over the page, not a fixed one */
 .takeover.is-stage {
   position: absolute;
   bottom: auto;
@@ -27,7 +27,8 @@
 .takeover__fill {
   position: absolute;
   inset: 0;
-  background: var(--hot-pink);
+  /* the same soft pink as the page itself */
+  background: var(--pink);
 }
 
 .takeover.is-dark .takeover__fill {
