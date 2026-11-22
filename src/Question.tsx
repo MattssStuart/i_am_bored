@@ -6,7 +6,7 @@ import { FADE_OUT_MS } from './theme'
  * "Was that cool?" — "no" isn't really an option.
  *
  * Each press of "no" changes its text and drops it further down the screen. The fourth press
- * sends it off the bottom completely, and "yes" grows into "yes, it is".
+ * sends it off the bottom completely, and "yes" grows into "yes, absolutely it is".
  * Pressing "yes" fades the page away and hands over to the next one.
  */
 
@@ -155,7 +155,7 @@ function Question({ onYes }: Props) {
           onClick={sayYes}
           disabled={leaving}
         >
-          {noGone ? 'yes, it is' : 'yes'}
+          {noGone ? 'yes, absolutely it is' : 'yes'}
         </button>
 
         {!noGone && (
