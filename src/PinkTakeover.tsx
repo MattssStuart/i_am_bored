@@ -1,21 +1,31 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import Greeting from './Greeting'
-import './EwPinkTakeover.css'
+import { FADE_OUT_MS, tintBrowserChrome } from './theme'
+import './PinkTakeover.css'
 
 /*
- * The "ew pink" sequence:
+ * The "pink? really?" sequence:
  *  1. expanding  – the button grows to fill the screen, its label glides to the centre
  *  2. erasing    – a whiteboard eraser wipes the pink away in zig-zag strokes, leaving black
  *                  (and revealing "Better??? Goshh" underneath as it passes)
  *  3. better     – "Better??? Goshh" holds on the black for a moment
  *  4. greeting   – it gets thrown away, and "Hey / Hi / Hello" (with "hi" and
  *                  "back to pink" underneath) slides in from the left as one block
- *  5. collapsing – everything shrinks back into the "ew pink" button, revealing the page again
+ *  5. collapsing – everything shrinks back into the button, revealing the page again
+ *
+ * Repeat trips ("back to black") are `quick`: the overlay is black from the start, so after
+ * 1 it skips straight to 4 — no wipe, no "Better??? Goshh".
  */
 type Phase = 'expanding' | 'erasing' | 'better' | 'greeting' | 'collapsing'
 
 type Props = {
   originRef: RefObject<HTMLButtonElement | null>
+  /** The origin button's text, shown as the big centred label */
+  label: string
+  /** Skip the wipe and "Better??? Goshh" and just change to black */
+  quick: boolean
+  /** "hi" was pressed on the black greeting */
+  onHi: () => void
   onCollapseStart: () => void
   onDone: () => void
 }
@@ -23,7 +33,7 @@ type Props = {
 const EXPAND_MS = 750
 const PAUSE_BEFORE_ERASE_MS = 400
 const ERASE_MS = 2000
-const BETTER_HOLD_MS = 1500
+const BETTER_HOLD_MS = 1000
 const COLLAPSE_MS = 1200
 
 const EASE_IN_OUT = 'cubic-bezier(0.65, 0, 0.35, 1)'
@@ -67,7 +77,7 @@ function eraserStrokes(width: number, height: number) {
 
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2)
 
-function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
+function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStart, onDone }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
   const pathRef = useRef<SVGPathElement>(null)
@@ -83,6 +93,15 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
 
   const { d, stroke } = useMemo(() => eraserStrokes(window.innerWidth, window.innerHeight), [])
 
+  // Match the iPhone's top and bottom bars to whatever fills the screen
+  useEffect(() => {
+    const hotPink = getComputedStyle(document.documentElement).getPropertyValue('--hot-pink').trim()
+    if (phase === 'erasing') tintBrowserChrome(hotPink)
+    else if (phase === 'better' || phase === 'greeting') tintBrowserChrome('#000')
+    else tintBrowserChrome(null) // expanding / collapsing: the page's own pink shows at the edges
+  }, [phase])
+  useEffect(() => () => tintBrowserChrome(null), [])
+
   // 1. Expand from the button to full screen
   useLayoutEffect(() => {
     const overlay = overlayRef.current
@@ -97,7 +116,8 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
     let timer = 0
     glide.finished
       .then(() => {
-        timer = window.setTimeout(() => setPhase('erasing'), reducedMotion() ? 0 : PAUSE_BEFORE_ERASE_MS)
+        if (quick) setPhase('greeting')
+        else timer = window.setTimeout(() => setPhase('erasing'), reducedMotion() ? 0 : PAUSE_BEFORE_ERASE_MS)
       })
       .catch(() => {}) // cancelled
     return () => {
@@ -105,7 +125,7 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
       glide.cancel()
       clearTimeout(timer)
     }
-  }, [originRef])
+  }, [originRef, quick])
 
   // 2. Wipe the pink away
   useLayoutEffect(() => {
@@ -149,7 +169,7 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
     if (phase === 'greeting') backRef.current?.focus({ preventScroll: true })
   }, [phase])
 
-  // 5. Shrink back into the "ew pink" button
+  // 5. Shrink back into the button
   useLayoutEffect(() => {
     if (phase !== 'collapsing') return
     const overlay = overlayRef.current
@@ -193,6 +213,14 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
     }
   }, [phase, originRef])
 
+  // "hi": the greeting fades away first, then we move on
+  const [leaving, setLeaving] = useState(false)
+  const sayHi = () => {
+    if (leaving) return
+    setLeaving(true)
+    window.setTimeout(() => onHi(), FADE_OUT_MS)
+  }
+
   const backToPink = () => {
     onCollapseStart()
     setPhase('collapsing')
@@ -205,6 +233,8 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
   if (isDark) classes.push('is-dark')
   if (showGreeting) classes.push('is-greeting')
   if (phase === 'collapsing') classes.push('is-collapsing')
+  if (quick) classes.push('is-quick')
+  if (leaving) classes.push('is-leaving')
 
   return (
     <div
@@ -212,13 +242,13 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
       className={classes.join(' ')}
       role="dialog"
       aria-modal="true"
-      aria-label="ew pink"
+      aria-label={labelText}
     >
       <div ref={labelRef} className="takeover__label" aria-hidden="true">
-        ew pink
+        {labelText}
       </div>
 
-      {phase !== 'expanding' && (
+      {!quick && phase !== 'expanding' && (
         <svg className="takeover__erase" width="100%" height="100%" aria-hidden="true">
           <defs>
             <mask id="takeover-wipe" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
@@ -258,21 +288,26 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
       )}
 
       {/* Screen readers get the message as text */}
-      {isDark && <p className="visually-hidden" aria-live="polite">Better??? Goshh</p>}
+      {isDark && !quick && <p className="visually-hidden" aria-live="polite">Better??? Goshh</p>}
 
       {showGreeting && (
         <div className="takeover__greeting">
           <Greeting animate={false}>
-            {/* TODO: "hi" functionality comes later */}
-            <button type="button" className="btn btn--hi">
+            <button
+              type="button"
+              className="btn btn--hi"
+              onClick={sayHi}
+              disabled={phase === 'collapsing' || leaving}
+            >
               hi
             </button>
+            <span className="landing__or">or</span>
             <button
               ref={backRef}
               type="button"
               className="btn btn--back"
               onClick={backToPink}
-              disabled={phase === 'collapsing'}
+              disabled={phase === 'collapsing' || leaving}
             >
               back to pink
             </button>
@@ -283,4 +318,4 @@ function EwPinkTakeover({ originRef, onCollapseStart, onDone }: Props) {
   )
 }
 
-export default EwPinkTakeover
+export default PinkTakeover

@@ -1,0 +1,51 @@
+.hi {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: var(--page-bg);
+  color: var(--page-fg);
+  padding:
+    max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+}
+
+.hi__question {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2rem, 6vh, 3.5rem);
+  text-align: center;
+  animation: hi-fade-in 0.8s ease both;
+}
+
+@keyframes hi-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.hi__title {
+  margin: 0;
+  font-size: clamp(2.5rem, 10vw, 6rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.hi__actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/*
+ * Same pill buttons as the landing page — including the shake (see Landing.css) — in the
+ * page's own colours.
+ */
+.hi .hi__btn {
+  background: var(--page-accent);
+  color: var(--page-on-accent);
+}

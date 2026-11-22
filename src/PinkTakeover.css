@@ -14,13 +14,19 @@
   background: #000;
 }
 
-/* "ew pink" — starts as the button's label, glides to the centre */
+/* Repeat trips ("back to black") are black from the very start — there's no pink to wipe */
+.takeover.is-quick {
+  background: #000;
+}
+
+/* The button's label — starts at the button, glides to the centre */
 .takeover__label {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: var(--big);
+  /* smaller than --big so "pink? really?" still fits across an iPhone (~43px on an iPhone 15) */
+  font-size: clamp(2rem, 11vw, 7.5rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -30,6 +36,11 @@
 
 .takeover.is-dark .takeover__label {
   opacity: 0;
+}
+
+/* With no wipe to hide it, the label fades out as the greeting arrives */
+.takeover.is-quick .takeover__label {
+  transition: opacity 0.25s ease;
 }
 
 /* The black layer the eraser reveals */
@@ -72,7 +83,7 @@
 }
 
 .takeover.is-greeting .takeover__better {
-  animation: throw-away 0.4s cubic-bezier(0.55, 0, 0.75, 0.2) forwards;
+  animation: throw-away 0.55s cubic-bezier(0.55, 0, 0.75, 0.2) forwards;
 }
 
 @keyframes throw-away {
@@ -99,7 +110,13 @@
     max(1rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-left));
   /* slides in from the left as one block, starting while "Better" is still flying off */
-  animation: slide-in-left 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+  animation: slide-in-left 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+  transition: opacity 0.6s ease;
+}
+
+/* "hi" pressed: the text and buttons fade away (FADE_OUT_MS in theme.ts) */
+.takeover.is-leaving .takeover__greeting {
+  opacity: 0;
 }
 
 @keyframes slide-in-left {
@@ -109,6 +126,11 @@
   to {
     transform: none;
   }
+}
+
+/* No "Better" flying off to wait for */
+.takeover.is-quick .takeover__greeting {
+  animation-delay: 0.1s;
 }
 
 .takeover.is-collapsing .takeover__greeting {

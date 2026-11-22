@@ -15,10 +15,16 @@
 }
 
 .landing__content {
+  transition: opacity 0.6s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: clamp(2rem, 6vh, 3.5rem);
+}
+
+/* "hi" pressed: the text and buttons fade away (FADE_OUT_MS in theme.ts) */
+.landing--leaving .landing__content {
+  opacity: 0;
 }
 
 .landing__words {
@@ -65,12 +71,13 @@
 
 .landing__actions {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
   gap: 0.75rem;
   opacity: 0;
   animation: rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
 
 @keyframes rise-in {
   from {
@@ -87,15 +94,63 @@
   font: inherit;
   font-size: 1.125rem;
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.1;
+  /* if the row is too narrow, the label wraps onto two lines (e.g. "pink?" over "really?"), centred */
+  text-align: center;
   /* at least 44px tall — Apple's minimum comfortable tap size */
   min-height: 3rem;
-  padding: 0 1.75rem;
+  padding: 0.5rem 1.5rem;
   border: none;
   border-radius: 999px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* The little "or" between the two buttons */
+.landing__or {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+/*
+ * A very slight side-to-side shake that hints "I'm clickable". It uses the separate `translate`
+ * property so it never fights with the hover / press `transform` below.
+ *
+ * Timeline (each shake lasts ~0.6s):
+ *   4.5s   both buttons shake together, just after they've faded in
+ *   11.5s  the first button shakes, 7s later the second, then the first again, and so on
+ * so after the opening shake they take turns, each on a 14s cycle with ~6.4s of stillness between.
+ */
+@keyframes shake-once {
+  0%, 100% { translate: 0; }
+  16.7%, 50%, 83.3% { translate: -2px; }
+  33.3%, 66.7% { translate: 2px; }
+}
+
+@keyframes shake {
+  0%, 4.3%, 100% { translate: 0; }
+  0.7%, 2.1%, 3.5% { translate: -2px; }
+  1.4%, 2.8% { translate: 2px; }
+}
+
+.btn {
+  animation:
+    shake-once 0.6s ease-in-out 4.5s 1,
+    shake 14s ease-in-out 11.5s infinite;
+}
+
+.landing__actions .btn:last-child,
+.hi__actions .btn:last-child {
+  animation-delay: 4.5s, 18.5s;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  animation-play-state: paused;
 }
 
 .btn:hover {
@@ -122,8 +177,17 @@
   color: #fff;
 }
 
+.btn--black {
+  background: #000;
+  color: #fff;
+}
+
 /* People who've asked their device for less motion get a simple fade instead */
 @media (prefers-reduced-motion: reduce) {
+  .btn {
+    animation: none;
+  }
+
   .landing__word,
   .landing__actions {
     transform: none;

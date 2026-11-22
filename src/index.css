@@ -37,3 +37,18 @@ body {
   margin: 0;
   background: var(--pink);
 }
+
+/* Page themes: every page after the landing page is either pink or black. */
+.theme-pink {
+  --page-bg: var(--pink);
+  --page-fg: #fff;
+  --page-accent: #fff;
+  --page-on-accent: #c2185b;
+}
+
+.theme-black {
+  --page-bg: #000;
+  --page-fg: #fff;
+  --page-accent: var(--pink);
+  --page-on-accent: #1a1a1a;
+}

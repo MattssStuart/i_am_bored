@@ -1,16 +1,37 @@
 import { useEffect, useRef, useState } from 'react'
-import EwPinkTakeover from './EwPinkTakeover'
+import PinkTakeover from './PinkTakeover'
 import Greeting from './Greeting'
+import { FADE_OUT_MS, type Theme } from './theme'
 import './Landing.css'
 
-function Landing() {
-  const ewPinkRef = useRef<HTMLButtonElement>(null)
+type Props = {
+  /** "hi" was pressed — move on, in the colour we were on */
+  onHi: (theme: Theme) => void
+}
+
+function Landing({ onHi }: Props) {
+  const switchRef = useRef<HTMLButtonElement>(null)
   const [takeoverOpen, setTakeoverOpen] = useState(false)
-  // The real "ew pink" button hides while the takeover pretends to be it
-  const [ewPinkHidden, setEwPinkHidden] = useState(false)
+  // The real colour-switch button hides while the takeover pretends to be it
+  const [switchHidden, setSwitchHidden] = useState(false)
+  // Once we've been to black and back, the button becomes "back to black"
+  const [returned, setReturned] = useState(false)
+  // Later trips skip the wipe and "Better??? Goshh" — it just changes to black
+  const [quick, setQuick] = useState(false)
+
+  // "hi": the text and buttons fade away first, then we move on
+  const [leaving, setLeaving] = useState(false)
+  const sayHi = () => {
+    if (leaving) return
+    setLeaving(true)
+    window.setTimeout(() => onHi('pink'), FADE_OUT_MS)
+  }
+
+  const switchLabel = returned ? 'back to black' : 'pink? really?'
 
   const openTakeover = () => {
-    setEwPinkHidden(true)
+    setQuick(returned)
+    setSwitchHidden(true)
     setTakeoverOpen(true)
   }
 
@@ -19,34 +40,40 @@ function Landing() {
   // After the takeover closes (and the page is interactive again), put keyboard focus back
   const wasOpen = useRef(false)
   useEffect(() => {
-    if (wasOpen.current && !takeoverOpen) ewPinkRef.current?.focus({ preventScroll: true })
+    if (wasOpen.current && !takeoverOpen) switchRef.current?.focus({ preventScroll: true })
     wasOpen.current = takeoverOpen
   }, [takeoverOpen])
 
   return (
     <>
-      <main className="landing" inert={takeoverOpen}>
+      <main className={`landing${leaving ? ' landing--leaving' : ''}`} inert={takeoverOpen || leaving}>
         <Greeting>
-          {/* TODO: "hi" functionality comes later */}
-          <button type="button" className="btn btn--hi">
+          <button type="button" className="btn btn--hi" onClick={sayHi}>
             hi
           </button>
+          <span className="landing__or">or</span>
           <button
-            ref={ewPinkRef}
+            ref={switchRef}
             type="button"
-            className="btn btn--ew"
-            style={{ visibility: ewPinkHidden ? 'hidden' : undefined }}
+            className={`btn ${returned ? 'btn--black' : 'btn--ew'}`}
+            style={{ visibility: switchHidden ? 'hidden' : undefined }}
             onClick={openTakeover}
           >
-            ew pink
+            {switchLabel}
           </button>
         </Greeting>
       </main>
 
       {takeoverOpen && (
-        <EwPinkTakeover
-          originRef={ewPinkRef}
-          onCollapseStart={() => setEwPinkHidden(false)}
+        <PinkTakeover
+          originRef={switchRef}
+          label={switchLabel}
+          quick={quick}
+          onHi={() => onHi('black')}
+          onCollapseStart={() => {
+            setSwitchHidden(false)
+            setReturned(true)
+          }}
           onDone={closeTakeover}
         />
       )}
