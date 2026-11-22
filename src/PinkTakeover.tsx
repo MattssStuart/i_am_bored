@@ -117,6 +117,11 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
     let timer = 0
     glide.finished
       .then(() => {
+        // Bake the end state into the styles and drop the animations: iOS Safari holds off
+        // re-colouring its bars while a fixed element still has an animation attached.
+        overlay.style.clipPath = FULL_SCREEN
+        grow.cancel()
+        glide.cancel()
         if (quick) setPhase('greeting')
         else timer = window.setTimeout(() => setPhase('erasing'), reducedMotion() ? 0 : PAUSE_BEFORE_ERASE_MS)
       })
@@ -244,6 +249,13 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
     >
       {/* The colour lives on this layer, not on the fixed overlay itself — see the CSS */}
       <div ref={fillRef} className="takeover__fill" aria-hidden="true" />
+
+      {/*
+        Once the screen is fully black, mount a black fixed layer. iOS 26 Safari re-colours its
+        top and bottom bars when a fixed element appears, but is slow to notice one changing
+        colour — so black has to arrive as a new element. It's removed again as we collapse.
+      */}
+      {(phase === 'better' || phase === 'greeting') && <div className="takeover__bars" aria-hidden="true" />}
 
       <div ref={labelRef} className="takeover__label" aria-hidden="true">
         {labelText}
