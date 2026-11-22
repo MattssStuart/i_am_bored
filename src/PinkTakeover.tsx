@@ -94,23 +94,10 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
 
   const { d, stroke } = useMemo(() => eraserStrokes(window.innerWidth, window.innerHeight), [])
 
-  // Match the iPhone's top and bottom bars to the screen: the page's own pink until the
-  // screen goes fully black, then black.
-  //
-  // They stay soft pink through the eraser wipe rather than following it to hot pink: on
-  // iOS 26 a hot pink -> black change right as the wipe ends was ignored, leaving the bars
-  // hot pink (soft pink -> black, as on "back to black", is picked up fine). Safari can also
-  // swallow a change that lands while it's busy repainting, so the first black is repeated
-  // a moment later (in a colour a hair different, so it counts as a change).
+  // Page background, for browsers that follow it: pink until the screen goes black.
+  // (iOS 26 mostly ignores this while the overlay is up — see `takeover__bars` below.)
   useEffect(() => {
-    const black = phase === 'better' || phase === 'greeting'
-    tintBrowserChrome(black ? '#000' : null)
-    if (phase !== 'better') return
-    const timers = [
-      window.setTimeout(() => tintBrowserChrome('#010101'), 350),
-      window.setTimeout(() => tintBrowserChrome('#000'), 800),
-    ]
-    return () => timers.forEach(clearTimeout)
+    tintBrowserChrome(phase === 'better' || phase === 'greeting' ? '#000' : null)
   }, [phase])
   useEffect(() => () => tintBrowserChrome(null), [])
 
@@ -251,87 +238,99 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
   if (leaving) classes.push('is-leaving')
 
   return (
-    <div
-      ref={overlayRef}
-      className={classes.join(' ')}
-      role="dialog"
-      aria-modal="true"
-      aria-label={labelText}
-    >
-      {/* The colour lives on this layer, not on the fixed overlay itself — see the CSS */}
-      <div ref={fillRef} className="takeover__fill" aria-hidden="true" />
+    <>
+      <div
+        ref={overlayRef}
+        className={classes.join(' ')}
+        role="dialog"
+        aria-modal="true"
+        aria-label={labelText}
+      >
+        {/* The colour lives on this layer, not on the fixed overlay itself — see the CSS */}
+        <div ref={fillRef} className="takeover__fill" aria-hidden="true" />
 
-      <div ref={labelRef} className="takeover__label" aria-hidden="true">
-        {labelText}
+        <div ref={labelRef} className="takeover__label" aria-hidden="true">
+          {labelText}
+        </div>
+
+        {!quick && phase !== 'expanding' && (
+          <svg className="takeover__erase" width="100%" height="100%" aria-hidden="true">
+            <defs>
+              <mask id="takeover-wipe" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
+                <path
+                  ref={pathRef}
+                  d={d}
+                  fill="none"
+                  stroke="#fff"
+                  strokeWidth={stroke}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </mask>
+            </defs>
+            {/* Once the wipe is done, drop the mask so no pink slivers can survive */}
+            <g mask={phase === 'erasing' ? 'url(#takeover-wipe)' : undefined}>
+              <rect width="100%" height="100%" fill="#000" />
+              <text className="takeover__better" x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
+                <tspan x="50%" dy="-0.55em">
+                  Better???
+                </tspan>
+                <tspan x="50%" dy="1.1em">
+                  Goshh
+                </tspan>
+              </text>
+            </g>
+          </svg>
+        )}
+
+        {phase === 'erasing' && (
+          <div
+            ref={eraserRef}
+            className="takeover__eraser"
+            style={{ width: stroke * 0.5, height: stroke * 0.95 }}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Screen readers get the message as text */}
+        {isDark && !quick && <p className="visually-hidden" aria-live="polite">Better??? Goshh</p>}
+
+        {showGreeting && (
+          <div className="takeover__greeting">
+            <Greeting animate={false}>
+              <button
+                type="button"
+                className="btn btn--hi"
+                onClick={sayHi}
+                disabled={phase === 'collapsing' || leaving}
+              >
+                hi
+              </button>
+              <span className="landing__or">or</span>
+              <button
+                ref={backRef}
+                type="button"
+                className="btn btn--back"
+                onClick={backToPink}
+                disabled={phase === 'collapsing' || leaving}
+              >
+                back to pink
+              </button>
+            </Greeting>
+          </div>
+        )}
       </div>
 
-      {!quick && phase !== 'expanding' && (
-        <svg className="takeover__erase" width="100%" height="100%" aria-hidden="true">
-          <defs>
-            <mask id="takeover-wipe" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
-              <path
-                ref={pathRef}
-                d={d}
-                fill="none"
-                stroke="#fff"
-                strokeWidth={stroke}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </mask>
-          </defs>
-          {/* Once the wipe is done, drop the mask so no pink slivers can survive */}
-          <g mask={phase === 'erasing' ? 'url(#takeover-wipe)' : undefined}>
-            <rect width="100%" height="100%" fill="#000" />
-            <text className="takeover__better" x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
-              <tspan x="50%" dy="-0.55em">
-                Better???
-              </tspan>
-              <tspan x="50%" dy="1.1em">
-                Goshh
-              </tspan>
-            </text>
-          </g>
-        </svg>
-      )}
-
-      {phase === 'erasing' && (
-        <div
-          ref={eraserRef}
-          className="takeover__eraser"
-          style={{ width: stroke * 0.5, height: stroke * 0.95 }}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Screen readers get the message as text */}
-      {isDark && !quick && <p className="visually-hidden" aria-live="polite">Better??? Goshh</p>}
-
-      {showGreeting && (
-        <div className="takeover__greeting">
-          <Greeting animate={false}>
-            <button
-              type="button"
-              className="btn btn--hi"
-              onClick={sayHi}
-              disabled={phase === 'collapsing' || leaving}
-            >
-              hi
-            </button>
-            <span className="landing__or">or</span>
-            <button
-              ref={backRef}
-              type="button"
-              className="btn btn--back"
-              onClick={backToPink}
-              disabled={phase === 'collapsing' || leaving}
-            >
-              back to pink
-            </button>
-          </Greeting>
-        </div>
-      )}
-    </div>
+      {/*
+        iOS 26 Safari colours its top and bottom bars from a full-screen fixed element when
+        one appears or disappears, but does NOT notice it changing colour (we saw the bars stay
+        hot pink for the whole black screen, then flip to pink only when the overlay went away).
+        So when the screen turns black, black arrives as a brand-new top-level fixed element.
+        It sits just under the overlay, which is already black, so it can't be seen. It goes
+        again as we collapse.
+      */}
+      {(phase === 'better' || phase === 'greeting') && <div className="takeover__bars" aria-hidden="true" />}
+    </>
   )
 }
 
