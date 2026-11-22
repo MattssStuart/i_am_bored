@@ -75,14 +75,14 @@
   justify-content: center;
   gap: 0.75rem;
   opacity: 0;
-  animation: rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  /* a slow, gentle ease in and out, so the buttons drift in instead of snapping into place */
+  animation: rise-in 1.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
-
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(1.5rem);
+    transform: translateY(1rem);
   }
   to {
     opacity: 1;
@@ -121,8 +121,8 @@
  * property so it never fights with the hover / press `transform` below.
  *
  * Timeline (each shake lasts ~0.6s):
- *   4.5s   both buttons shake together, just after they've faded in
- *   11.5s  the first button shakes, 7s later the second, then the first again, and so on
+ *   5.5s   both buttons shake together, just after they've faded in (they finish at ~4.9s)
+ *   12.5s  the first button shakes, 7s later the second, then the first again, and so on
  * so after the opening shake they take turns, each on a 14s cycle with ~6.4s of stillness between.
  */
 @keyframes shake-once {
@@ -139,13 +139,13 @@
 
 .btn {
   animation:
-    shake-once 0.6s ease-in-out 4.5s 1,
-    shake 14s ease-in-out 11.5s infinite;
+    shake-once 0.6s ease-in-out 5.5s 1,
+    shake 14s ease-in-out 12.5s infinite;
 }
 
 .landing__actions .btn:last-child,
 .hi__actions .btn:last-child {
-  animation-delay: 4.5s, 18.5s;
+  animation-delay: 5.5s, 19.5s;
 }
 
 .btn:hover,

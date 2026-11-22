@@ -8,7 +8,8 @@ function App() {
   // Pressing "hi" moves on to the next page, in whichever colour we were on.
   const [hiTheme, setHiTheme] = useState<Theme | null>(null)
 
-  if (hiTheme) return <HiPage theme={hiTheme} />
+  // "restart" on the last page clears it, which brings back a fresh landing page
+  if (hiTheme) return <HiPage theme={hiTheme} onRestart={() => setHiTheme(null)} />
   return <Landing onHi={setHiTheme} />
 }
 

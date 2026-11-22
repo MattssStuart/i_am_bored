@@ -10,6 +10,19 @@
     max(1rem, env(safe-area-inset-right))
     max(1rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-left));
+  /* things slide in from the side and drop off the bottom of the screen — never a scrollbar */
+  overflow: clip;
+}
+
+/* "I needed something to do and this was it..." — typed out by TypedText */
+.hi__typed {
+  margin: 0;
+  max-width: 14em;
+  text-align: center;
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .hi__question {
@@ -18,11 +31,30 @@
   align-items: center;
   gap: clamp(2rem, 6vh, 3.5rem);
   text-align: center;
+  /*
+   * Room underneath, which lifts everything a little above the middle. "no" drops down through
+   * it in four equal steps, and on a short iPhone screen it needs the space to stay fully on
+   * screen until the fourth press (see Question.tsx).
+   */
+  padding-bottom: 12vh;
+  padding-bottom: 12dvh;
   animation: hi-fade-in 0.8s ease both;
 }
 
 @keyframes hi-fade-in {
   from {
+    opacity: 0;
+  }
+}
+
+/* "yes" pressed, or "restart" on the pink version: everything fades away (FADE_OUT_MS in theme.ts) */
+.hi__question--leaving,
+.hi__finale--leaving {
+  animation: hi-fade-out 0.6s ease forwards;
+}
+
+@keyframes hi-fade-out {
+  to {
     opacity: 0;
   }
 }
@@ -48,4 +80,144 @@
 .hi .hi__btn {
   background: var(--page-accent);
   color: var(--page-on-accent);
+}
+
+/* ---------- "no" drops away, "yes" takes over (see Question.tsx) ---------- */
+
+/* Holds the space "no" starts with, so nothing else moves when its label changes */
+.hi__no-slot {
+  position: relative;
+  display: flex;
+}
+
+.hi__no-spacer {
+  visibility: hidden;
+}
+
+/* The real "no" floats over the slot and is dropped down with `top` (JS) */
+.hi .hi__no {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  /* 0.6s = NO_MOVE_MS in Question.tsx; the other two are the usual .btn hover transitions */
+  transition:
+    top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* "yes" once "no" is gone: bigger, and free to wrap onto two lines on a narrow screen */
+.hi .hi__btn--big {
+  font-size: clamp(1.25rem, 5.5vw, 2.25rem);
+  padding: 1rem clamp(1.5rem, 5vw, 3rem);
+  max-width: min(100%, 26rem);
+}
+
+/* ---------- The sign-off after "yes" (see Finale.tsx) ---------- */
+
+.hi__finale {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2rem, 6vh, 3.5rem);
+  text-align: center;
+}
+
+.hi__finale-text {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 4vh, 2.25rem);
+}
+
+.hi__line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+}
+
+/*
+ * The sign-off's timeline, from the moment the page appears:
+ *   0s     "Perf!!" slides in from the right (0.9s)
+ *   1s     "(short for perfect)" slides in the same way, a second after it
+ *   2.6s   "Anyways…" fades in slowly (1.8s), done at 4.4s
+ *   5.4s   the restart button starts to fade in (2.2s), a second after "Anyways…" has finished
+ *          — see .hi__finale-actions
+ * Everything is laid out from the start, so nothing shifts as the pieces arrive.
+ */
+.hi__line--perf .hi__big {
+  animation: hi-slide-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hi__line--perf .hi__small {
+  animation: hi-slide-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1s both;
+}
+
+.hi__line--rest {
+  animation: hi-fade-in 1.8s ease 2.6s both;
+}
+
+@keyframes hi-slide-in {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.hi__big {
+  font-size: clamp(2.25rem, 9vw, 5rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.hi__small {
+  font-size: clamp(1rem, 3.6vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  opacity: 0.85;
+}
+
+/* The button drifts in slowly, a few seconds after the text has finished (rise-in is in Landing.css) */
+.hi__finale-actions {
+  opacity: 0;
+  animation: rise-in 2.2s cubic-bezier(0.4, 0, 0.2, 1) 5.4s forwards;
+}
+
+/* Restart: pink grows out of the button to cover the page (see Finale.tsx) */
+.hi__grow {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+}
+
+/* "restart" stays where the button's text was (JS sets left/top/colour/size) */
+.hi__grow-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* Less motion: no sliding, no sudden jumps — just fades */
+@media (prefers-reduced-motion: reduce) {
+  .hi .hi__no {
+    transition: none;
+  }
+
+  .hi__line--perf .hi__big,
+  .hi__line--perf .hi__small {
+    animation-name: hi-fade-in;
+  }
+
+  .hi__finale-actions {
+    animation: hi-fade-in 1s ease 4.4s both;
+  }
 }

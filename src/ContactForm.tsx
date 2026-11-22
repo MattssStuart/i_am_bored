@@ -18,7 +18,7 @@ function ContactForm() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // TODO: send the response somewhere (e.g. WhatsApp) — for now just log it
+    // TODO: send the response somewhere — for now just log it
     console.log('Form submitted:', form)
     setSubmitted(true)
     setForm(emptyForm)

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import Greeting from './Greeting'
+import { clipToElement, EASE_IN_OUT, FULL_SCREEN, reducedMotion } from './motion'
 import { FADE_OUT_MS, tintBrowserChrome } from './theme'
 import './PinkTakeover.css'
 
@@ -35,29 +36,6 @@ const PAUSE_BEFORE_ERASE_MS = 400
 const ERASE_MS = 2000
 const BETTER_HOLD_MS = 1000
 const COLLAPSE_MS = EXPAND_MS // shrinking back takes exactly as long as growing out
-
-const EASE_IN_OUT = 'cubic-bezier(0.65, 0, 0.35, 1)'
-const FULL_SCREEN = 'inset(0px 0px 0px 0px round 0px)'
-
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-/**
- * The button's corner radius as a real length. A pill's computed radius is 999px, which the
- * browser clamps to half its height — but animating 999px -> 0 keeps the shape a stretched
- * pill/circle/oval for most of the trip. Using the real radius (about 24px) makes it a plain
- * rounded rectangle that grows (or shrinks) smoothly.
- */
-function cornerRadius(el: HTMLElement, rect: DOMRect) {
-  const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0
-  return Math.min(radius, rect.height / 2, rect.width / 2)
-}
-
-/** A clip-path that cuts the full-screen overlay down to exactly the button's shape. */
-function clipToElement(el: HTMLElement, overlay: HTMLElement) {
-  const r = el.getBoundingClientRect()
-  const o = overlay.getBoundingClientRect()
-  return `inset(${r.top - o.top}px ${o.right - r.right}px ${o.bottom - r.bottom}px ${r.left - o.left}px round ${cornerRadius(el, r)}px)`
-}
 
 /** Moves + shrinks the centred label so it sits exactly where the button's label is. */
 function labelAtElement(el: HTMLElement, overlay: HTMLElement, label: HTMLElement) {

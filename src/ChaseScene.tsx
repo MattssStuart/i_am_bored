@@ -21,6 +21,7 @@ const FADE_OUT_MS = 1000 // matches the transition on .scene--fading
 // ---------- Timing (seconds) ----------
 const LINE_AT = 0.25
 const LINE_S = 0.9
+const RUN_DELAY_S = 0.6 // the pause after the line is fully drawn, before the cat appears
 const OFFSCREEN_GAP_S = 2
 const ROCKET_S = 0.5
 const SPARK_LIFE_S = 1.5
@@ -205,7 +206,7 @@ function ChaseScene({ onFinished }: Props) {
       const g1 = (CROC_W + 4 + CAT_W) * px
       const g2 = (CROC_W + 8 + (CHASERS - 1) * 24 + CAT_W) * px
 
-      const run1At = LINE_AT + LINE_S + 0.3
+      const run1At = LINE_AT + LINE_S + RUN_DELAY_S
       const run1Dur = (W + g1) / speed
       const run2At = run1At + run1Dur + OFFSCREEN_GAP_S
       const run2Dur = (W + g2) / speed
