@@ -79,6 +79,7 @@ const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 
 
 function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStart, onDone }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)
+  const fillRef = useRef<HTMLDivElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
   const pathRef = useRef<SVGPathElement>(null)
   const eraserRef = useRef<HTMLDivElement>(null)
@@ -173,21 +174,17 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
   useLayoutEffect(() => {
     if (phase !== 'collapsing') return
     const overlay = overlayRef.current
+    const fill = fillRef.current
     const label = labelRef.current
     const origin = originRef.current
-    if (!overlay || !label || !origin) return
+    if (!overlay || !fill || !label || !origin) return
 
     const reduce = reducedMotion()
     const timing = { duration: reduce ? 0 : COLLAPSE_MS, easing: EASE_IN_OUT, fill: 'both' as const }
     const hotPink = getComputedStyle(origin).backgroundColor
 
-    const shrink = overlay.animate(
-      [
-        { clipPath: FULL_SCREEN, backgroundColor: '#000' },
-        { clipPath: clipToElement(origin, overlay), backgroundColor: hotPink },
-      ],
-      timing,
-    )
+    const shrink = overlay.animate([{ clipPath: FULL_SCREEN }, { clipPath: clipToElement(origin, overlay) }], timing)
+    const recolour = fill.animate([{ backgroundColor: '#000' }, { backgroundColor: hotPink }], timing)
     const glide = label.animate(
       [
         { transform: 'none', opacity: 0 },
@@ -208,6 +205,7 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
       .catch(() => {}) // cancelled
     return () => {
       shrink.cancel()
+      recolour.cancel()
       glide.cancel()
       fade?.cancel()
     }
@@ -244,6 +242,9 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
       aria-modal="true"
       aria-label={labelText}
     >
+      {/* The colour lives on this layer, not on the fixed overlay itself — see the CSS */}
+      <div ref={fillRef} className="takeover__fill" aria-hidden="true" />
+
       <div ref={labelRef} className="takeover__label" aria-hidden="true">
         {labelText}
       </div>
