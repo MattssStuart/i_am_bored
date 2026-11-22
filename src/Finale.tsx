@@ -92,7 +92,7 @@ function Finale({ theme, onRestart }: Props) {
           <span className="hi__small">(short for perfect)</span>
         </span>
         <span className="hi__line hi__line--rest">
-          <span className="hi__big">Anyways hope you feel better!!!</span>
+          <span className="hi__big">Anyways hope you feel better soon!!!</span>
         </span>
       </h1>
 
