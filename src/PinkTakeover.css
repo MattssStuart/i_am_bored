@@ -16,6 +16,14 @@
    */
 }
 
+/* The hot pink stage of the first trip is a plain layer over the page, not a fixed one */
+.takeover.is-stage {
+  position: absolute;
+  bottom: auto;
+  height: 100vh;
+  height: 100dvh;
+}
+
 .takeover__fill {
   position: absolute;
   inset: 0;

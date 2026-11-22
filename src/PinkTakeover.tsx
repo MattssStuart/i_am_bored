@@ -94,10 +94,13 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
 
   const { d, stroke } = useMemo(() => eraserStrokes(window.innerWidth, window.innerHeight), [])
 
-  // Page background, for browsers that follow it: pink until the screen goes black.
-  // (iOS 26 ignores this while the overlay is up — see `overlayKey` below.)
+  // The page background, which iOS 26 uses for its bars whenever no fixed element is on screen
+  // (see `staged` below): hot pink for the wipe, black once the screen is black, else the page's pink.
   useEffect(() => {
-    tintBrowserChrome(phase === 'better' || phase === 'greeting' ? '#000' : null)
+    const hotPink = getComputedStyle(document.documentElement).getPropertyValue('--hot-pink').trim()
+    if (phase === 'erasing') tintBrowserChrome(hotPink)
+    else if (phase === 'better' || phase === 'greeting') tintBrowserChrome('#000')
+    else tintBrowserChrome(null)
   }, [phase])
   useEffect(() => () => tintBrowserChrome(null), [])
 
@@ -230,19 +233,37 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
   const isDark = phase === 'better' || phase === 'greeting' || phase === 'collapsing'
   const showGreeting = phase === 'greeting' || phase === 'collapsing'
 
-  // iOS 26 Safari colours its top and bottom bars from the full-screen fixed overlay, but only
-  // once, when the overlay fully covers the screen — it ignores the overlay changing colour
-  // afterwards (the bars stayed hot pink through the whole black screen, then went pink only
-  // when the overlay was removed). So when the wipe finishes and the screen is black, the overlay
-  // is swapped for a fresh element (a new key remounts it), which Safari samples again — as
-  // black. "Back to black" trips are black from the start, so they never need the swap.
-  const overlayKey = !quick && (phase === 'expanding' || phase === 'erasing') ? 'pink' : 'black'
+  // Why the first trip is built in two stages:
+  //
+  // iOS 26 Safari colours its top and bottom bars from a full-screen position:fixed element,
+  // but only when one appears (it ignores that element changing colour later, and swapping it
+  // for a copy in the same instant). "Back to black" works because its overlay is black when it
+  // appears. The first trip used to appear hot pink, so the bars stayed hot pink for the whole
+  // black screen. So the hot pink part (expand + wipe) runs on a plain, non-fixed layer, which
+  // Safari ignores, and only once the screen is black does a fixed overlay appear — black, with
+  // the same settling animation as "back to black". The key makes React build a fresh element.
+  const staged = !quick && (phase === 'expanding' || phase === 'erasing')
+  const overlayKey = staged ? 'stage' : 'fixed'
+
+  // The fixed overlay's first moments: mirror what "back to black" does when its overlay lands
+  // (a clip-path animation that ends once the screen is covered). Here it changes nothing
+  // visually — the screen is already black, so it's the same clip-path start to finish.
+  useLayoutEffect(() => {
+    if (quick || staged) return
+    const overlay = overlayRef.current
+    if (!overlay) return
+    const settle = overlay.animate([{ clipPath: FULL_SCREEN }, { clipPath: FULL_SCREEN }], {
+      duration: reducedMotion() ? 0 : EXPAND_MS,
+    })
+    return () => settle.cancel()
+  }, [quick, staged])
 
   const classes = ['takeover']
   if (isDark) classes.push('is-dark')
   if (showGreeting) classes.push('is-greeting')
   if (phase === 'collapsing') classes.push('is-collapsing')
   if (quick) classes.push('is-quick')
+  if (staged) classes.push('is-stage')
   if (leaving) classes.push('is-leaving')
 
   return (
