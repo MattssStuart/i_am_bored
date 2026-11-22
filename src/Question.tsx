@@ -11,7 +11,7 @@ import { FADE_OUT_MS } from './theme'
  */
 
 /** What "no" says: at the start, then after each of the first three presses. */
-const NO_LABELS = ['no', 'seriously?', 'you sure?', 'so you hate me?']
+const NO_LABELS = ['no', 'seriously?', 'you sure?', 'mean :(']
 const NO_PRESSES_TO_GO = 4
 /**
  * After the last press, "yes" starts growing once "no" is out of sight. "no" takes 0.6s to drop

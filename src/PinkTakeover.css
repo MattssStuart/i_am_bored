@@ -96,7 +96,7 @@
   pointer-events: none;
 }
 
-/* "Better??? Goshh" gets thrown away: a little wind-up, then it flies off spinning */
+/* "Better??? Gosh" gets thrown away: a little wind-up, then it flies off spinning */
 .takeover__better {
   transform-box: fill-box;
   transform-origin: center;

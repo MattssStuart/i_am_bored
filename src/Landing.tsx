@@ -16,7 +16,7 @@ function Landing({ onHi }: Props) {
   const [switchHidden, setSwitchHidden] = useState(false)
   // Once we've been to black and back, the button becomes "back to black"
   const [returned, setReturned] = useState(false)
-  // Later trips skip the wipe and "Better??? Goshh" — it just changes to black
+  // Later trips skip the wipe and "Better??? Gosh" — it just changes to black
   const [quick, setQuick] = useState(false)
 
   // "hi": the text and buttons fade away first, then we move on

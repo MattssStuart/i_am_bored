@@ -15,7 +15,7 @@ type Props = {
 
 /**
  * What "yes" leads to: "Perf!!" slides in, then "(short for perfect)" under it, then "Anyways
- * hope you feel better soon!!!" fades in, and a while later a restart button does.
+ * hope you feel better!!!" fades in, and a while later a restart button does.
  *
  * Restart goes back to the landing page, which is pink, without a sudden snap. If the page is
  * already pink, everything just fades away into it. If it's black, the button grows into the
@@ -92,8 +92,7 @@ function Finale({ theme, onRestart }: Props) {
           <span className="hi__small">(short for perfect)</span>
         </span>
         <span className="hi__line hi__line--rest">
-          <span className="hi__big">Anyways hope you feel better soon!!!</span>
-          <span className="hi__small">(or at least don't die)</span>
+          <span className="hi__big">Anyways hope you feel better!!!</span>
         </span>
       </h1>
 

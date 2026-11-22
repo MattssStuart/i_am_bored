@@ -8,14 +8,14 @@ import './PinkTakeover.css'
  * The "pink? really?" sequence:
  *  1. expanding  – the button grows to fill the screen, its label glides to the centre
  *  2. erasing    – a whiteboard eraser wipes the pink away in zig-zag strokes, leaving black
- *                  (and revealing "Better??? Goshh" underneath as it passes)
- *  3. better     – "Better??? Goshh" holds on the black for a moment
+ *                  (and revealing "Better??? Gosh" underneath as it passes)
+ *  3. better     – "Better??? Gosh" holds on the black for a moment
  *  4. greeting   – it gets thrown away, and "Hey / Hi / Hello" (with "hi" and
  *                  "back to pink" underneath) slides in from the left as one block
  *  5. collapsing – everything shrinks back into the button, revealing the page again
  *
  * Repeat trips ("back to black") are `quick`: the overlay is black from the start, so after
- * 1 it skips straight to 4 — no wipe, no "Better??? Goshh".
+ * 1 it skips straight to 4 — no wipe, no "Better??? Gosh".
  */
 type Phase = 'expanding' | 'erasing' | 'better' | 'greeting' | 'collapsing'
 
@@ -23,7 +23,7 @@ type Props = {
   originRef: RefObject<HTMLButtonElement | null>
   /** The origin button's text, shown as the big centred label */
   label: string
-  /** Skip the wipe and "Better??? Goshh" and just change to black */
+  /** Skip the wipe and "Better??? Gosh" and just change to black */
   quick: boolean
   /** "hi" was pressed on the black greeting */
   onHi: () => void
@@ -152,7 +152,7 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
     return () => cancelAnimationFrame(raf)
   }, [phase])
 
-  // 3. Hold "Better??? Goshh", then move on to the black greeting
+  // 3. Hold "Better??? Gosh", then move on to the black greeting
   useEffect(() => {
     if (phase !== 'better') return
     const timer = window.setTimeout(() => setPhase('greeting'), BETTER_HOLD_MS)
@@ -293,7 +293,7 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
                 Better???
               </tspan>
               <tspan x="50%" dy="1.1em">
-                Goshh
+                Gosh
               </tspan>
             </text>
           </g>
@@ -310,7 +310,7 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
       )}
 
       {/* Screen readers get the message as text */}
-      {isDark && !quick && <p className="visually-hidden" aria-live="polite">Better??? Goshh</p>}
+      {isDark && !quick && <p className="visually-hidden" aria-live="polite">Better??? Gosh</p>}
 
       {showGreeting && (
         <div className="takeover__greeting">

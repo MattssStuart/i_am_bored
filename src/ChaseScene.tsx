@@ -100,7 +100,7 @@ const CAT_SIT = [
 const CAT_W = 20
 const CROC_W = 38
 const CAT_HEAD = { cx: 17, top: 0 } // where the "!!!" go, in sprite pixels
-const CROC_HEAD = { cx: 33, top: 1 }
+const CROC_HEAD = { cx: 28, top: 1 } // over his head, not his snout
 
 // Leg poses in the order they play, and how far (in sprite pixels) each one lifts the body
 const FRAME_ORDER = [0, 3, 1, 2]
