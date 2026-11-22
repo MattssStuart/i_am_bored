@@ -94,12 +94,23 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
 
   const { d, stroke } = useMemo(() => eraserStrokes(window.innerWidth, window.innerHeight), [])
 
-  // Match the iPhone's top and bottom bars to whatever fills the screen
+  // Match the iPhone's top and bottom bars to the screen: the page's own pink until the
+  // screen goes fully black, then black.
+  //
+  // They stay soft pink through the eraser wipe rather than following it to hot pink: on
+  // iOS 26 a hot pink -> black change right as the wipe ends was ignored, leaving the bars
+  // hot pink (soft pink -> black, as on "back to black", is picked up fine). Safari can also
+  // swallow a change that lands while it's busy repainting, so the first black is repeated
+  // a moment later (in a colour a hair different, so it counts as a change).
   useEffect(() => {
-    const hotPink = getComputedStyle(document.documentElement).getPropertyValue('--hot-pink').trim()
-    if (phase === 'erasing') tintBrowserChrome(hotPink)
-    else if (phase === 'better' || phase === 'greeting') tintBrowserChrome('#000')
-    else tintBrowserChrome(null) // expanding / collapsing: the page's own pink shows at the edges
+    const black = phase === 'better' || phase === 'greeting'
+    tintBrowserChrome(black ? '#000' : null)
+    if (phase !== 'better') return
+    const timers = [
+      window.setTimeout(() => tintBrowserChrome('#010101'), 350),
+      window.setTimeout(() => tintBrowserChrome('#000'), 800),
+    ]
+    return () => timers.forEach(clearTimeout)
   }, [phase])
   useEffect(() => () => tintBrowserChrome(null), [])
 
@@ -249,13 +260,6 @@ function PinkTakeover({ originRef, label: labelText, quick, onHi, onCollapseStar
     >
       {/* The colour lives on this layer, not on the fixed overlay itself — see the CSS */}
       <div ref={fillRef} className="takeover__fill" aria-hidden="true" />
-
-      {/*
-        Once the screen is fully black, mount a black fixed layer. iOS 26 Safari re-colours its
-        top and bottom bars when a fixed element appears, but is slow to notice one changing
-        colour — so black has to arrive as a new element. It's removed again as we collapse.
-      */}
-      {(phase === 'better' || phase === 'greeting') && <div className="takeover__bars" aria-hidden="true" />}
 
       <div ref={labelRef} className="takeover__label" aria-hidden="true">
         {labelText}

@@ -22,13 +22,6 @@
   background: var(--hot-pink);
 }
 
-/* Invisible in practice: it sits on a screen that is already black (see PinkTakeover.tsx) */
-.takeover__bars {
-  position: fixed;
-  inset: 0;
-  background: #000;
-}
-
 .takeover.is-dark .takeover__fill {
   background: #000;
 }
